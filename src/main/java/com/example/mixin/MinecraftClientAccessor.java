@@ -1,4 +1,4 @@
-package net.yourname.mixin;
+package com.example.mixin;
 
 import net.minecraft.client.MinecraftClient;
 import org.spongepowered.asm.mixin.Mixin;
@@ -6,6 +6,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(MinecraftClient.class)
 public interface MinecraftClientAccessor {
-    @Accessor("itemUseCooldown")
-    void setItemUseCooldown(int itemUseCooldown);
+    @Accessor("missTime")
+    void setMissTime(int missTime);
 }

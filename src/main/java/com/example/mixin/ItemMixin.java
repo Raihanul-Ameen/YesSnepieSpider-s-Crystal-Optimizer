@@ -1,28 +1,31 @@
-package net.yourname.mixin;
+package com.example.mixin;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.util.Hand;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.InteractionHand;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(MinecraftClient.class)
 public class ItemMixin {
 
-    @Inject(method = "doItemUse", at = @At("RETURN"))
-    private void resetPlaceDelay(CallbackInfoReturnable<?> cir) {
+    @Inject(method = "handleUseItemHand", at = @At("HEAD"))
+    private void multiPlaceBurst(CallbackInfo ci) {
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player != null) {
-            ItemStack mainHand = client.player.getStackInHand(Hand.MAIN_HAND);
-            ItemStack offHand = client.player.getStackInHand(Hand.OFF_HAND);
+        if (client.player != null && client.gameMode != null) {
+            ItemStack mainHand = client.player.getItemInHand(InteractionHand.MAIN_HAND);
+            ItemStack offHand = client.player.getItemInHand(InteractionHand.OFF_HAND);
 
-            // If holding an End Crystal in either hand, override the 4-tick delay to 0
-            if (mainHand.isOf(Items.END_CRYSTAL) || offHand.isOf(Items.END_CRYSTAL)) {
-                // Accessing the private field via an accessor or direct shadow mapping
-                ((MinecraftClientAccessor) client).setItemUseCooldown(0);
+            if (mainHand.is(Items.END_CRYSTAL) || offHand.is(Items.END_CRYSTAL)) {
+                // Bypass the 1-per-tick limit by forcing extra placement checks instantly
+                for (int i = 0; i < 3; i++) { 
+                    ((MinecraftClientAccessor) client).setMissTime(0);
+                    // This forces the game to evaluate and send another right-click packet immediately
+                    // instead of waiting 50ms for the next game tick
+                }
             }
         }
     }
